@@ -1,17 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Cormorant+Garamond:wght@400;600&family=Noto+Naskh+Arabic:wght@400;700&display=swap');
 
 :root {
-  --bg: #08080f;
-  --surface: #10101c;
-  --purple: #a08ec8;
-  --glow: #cebfec;
-  --dim: #5c5080;
-  --teal: #70c8bc;
-  --coral: #e8836a;
-  --amber: #d4a85a;
-  --green: #88c488;
-  --text: #ece8f4;
-  --muted: #7a7590;
+  /* Palette médicale vert & blanc */
+  --bg: #f3f7f9;
+  --surface: #ffffff;
+  --purple: #2f9c7a; /* devient notre vert principal */
+  --glow: #46b38a;
+  --dim: #9cb3c0;
+  --teal: #2f9c7a;
+  --coral: #f06a5c;
+  --amber: #f3b35b;
+  --green: #2f9c7a;
+  --text: #1b2730;
+  --muted: #6b7c88;
 }
 
 *,
@@ -26,7 +27,7 @@ body {
   padding: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle at top, #15152a 0, var(--bg) 55%);
+  background: radial-gradient(circle at top, #ffffff 0, var(--bg) 55%);
   color: var(--text);
   font-family: 'Space Mono', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -51,13 +52,11 @@ a {
 }
 
 .glass {
-  background: radial-gradient(circle at top left, rgba(160, 142, 200, 0.18), transparent 55%), var(--surface);
+  background: radial-gradient(circle at top left, rgba(47, 156, 122, 0.06), transparent 55%), var(--surface);
   border-radius: 18px;
-  border: 1px solid rgba(206, 191, 236, 0.18);
+  border: 1px solid rgba(203, 216, 222, 0.9);
   box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.01),
-    0 20px 40px rgba(0, 0, 0, 0.65),
-    0 0 80px rgba(160, 142, 200, 0.2);
+    0 18px 35px rgba(12, 31, 43, 0.14);
   backdrop-filter: blur(18px);
 }
 
@@ -67,11 +66,10 @@ a {
   font-size: clamp(40px, 6vw, 60px);
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--glow);
+  color: var(--green);
   text-align: center;
   text-shadow:
-    0 0 18px rgba(206, 191, 236, 0.9),
-    0 0 48px rgba(160, 142, 200, 0.9);
+    0 0 0 transparent;
 }
 
 .logo-sub-ar {

@@ -633,9 +633,8 @@ function processPose(results) {
     const fps = (frameCount * 1000) / (now - lastFpsCheck);
     frameCount = 0;
     lastFpsCheck = now;
-    if (fps < 8) {
-      activateDemoMode('Pose lente, passage en mode démo.');
-    }
+    // On ne force plus le mode démo sur faible FPS pour garder le mode "réel"
+    // console.log('Pose FPS ~', fps.toFixed(1));
   }
   if (!results.poseLandmarks) return;
   const cfg = EXERCISES[activeExerciseKey];
@@ -678,7 +677,8 @@ function startCamera() {
   return camera
     .start()
     .then(() => {
-      statusLabelEl.textContent = 'Caméra active · Pose en cours';
+      deactivateDemoMode();
+      statusLabelEl.textContent = 'Caméra active · Pose en temps réel';
     })
     .catch((e) => {
       console.error(e);
