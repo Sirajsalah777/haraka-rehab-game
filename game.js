@@ -729,9 +729,10 @@ function deactivateDemoMode() {
 }
 
 // LocalStorage
-const PATIENT_ID = 'youssef'; // démo
+let PATIENT_ID = 'demo';
 
 function saveSession(quality) {
+  if (!PATIENT_ID) PATIENT_ID = 'demo';
   const data = {
     timestamp: Date.now(),
     exercise: activeExerciseKey,
@@ -751,6 +752,7 @@ let activePingTimer = null;
 let sessionStartTime = Date.now();
 
 function startActivePing() {
+  if (!PATIENT_ID) PATIENT_ID = 'demo';
   const key = `haraka_active_${PATIENT_ID}`;
   localStorage.setItem(key, String(Date.now()));
   if (activePingTimer) clearInterval(activePingTimer);
@@ -767,8 +769,12 @@ function stopActivePing() {
 }
 
 // Évènements UI
+const patientIdInput = document.getElementById('patient-id-input');
 btnStart.addEventListener('click', async () => {
   ensureAudio();
+  const typedId = patientIdInput ? patientIdInput.value.trim() : '';
+  PATIENT_ID = typedId || 'demo';
+  localStorage.setItem('haraka_current_patient_id', PATIENT_ID);
   switchScreen('game');
   resetGameState();
   statusLabelEl.textContent = 'Démarrage…';

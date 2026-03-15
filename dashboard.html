@@ -14,20 +14,9 @@
           <div class="sidebar-sub">حركة</div>
         </div>
         <div class="patient-list" id="patient-list">
-          <div class="patient-item active" data-id="youssef">
-            <strong>Youssef M.</strong>
-            <div class="patient-meta">Genou post‑op — Semaine 2</div>
-            <div class="patient-compliance">73% de complétion</div>
-          </div>
-          <div class="patient-item" data-id="fatima">
-            <strong>Fatima A.</strong>
-            <div class="patient-meta">Épaule — Semaine 1</div>
-            <div class="patient-compliance">45% de complétion</div>
-          </div>
-          <div class="patient-item" data-id="omar">
-            <strong>Omar K.</strong>
-            <div class="patient-meta">Dos — Semaine 3</div>
-            <div class="patient-compliance">91% de complétion</div>
+          <div class="patient-item active" data-id="demo">
+            <strong id="patient-list-label">Patient (code : demo)</strong>
+            <div class="patient-meta">Saisissez un code patient pour charger ses données.</div>
           </div>
         </div>
       </aside>
@@ -36,7 +25,17 @@
         <div class="main-header-row">
           <div>
             <div class="section-title">Patient</div>
-            <h1 class="main-title" id="patient-name">Youssef M. — Genou post‑op</h1>
+            <h1 class="main-title" id="patient-name">Patient (code : demo)</h1>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <input
+              id="patient-code-input"
+              type="text"
+              placeholder="Code patient (ex : youssef123)"
+              class="input"
+              style="max-width: 190px;"
+            />
+            <button class="btn-ghost" id="btn-load-patient">Charger</button>
           </div>
           <div id="live-indicator" class="live-badge off">
             <span class="live-dot"></span>

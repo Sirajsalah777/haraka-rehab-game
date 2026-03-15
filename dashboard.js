@@ -1,21 +1,7 @@
-const patientsMeta = {
-  youssef: {
-    label: 'Youssef M. — Genou post‑op',
-    baseline: { sessions: '4/5', quality: '81%', reps: '127', last: 'Hier 18:32' },
-  },
-  fatima: {
-    label: 'Fatima A. — Épaule',
-    baseline: { sessions: '3/5', quality: '72%', reps: '98', last: 'Hier 11:10' },
-  },
-  omar: {
-    label: 'Omar K. — Dos',
-    baseline: { sessions: '5/5', quality: '89%', reps: '154', last: 'Aujourd’hui 09:05' },
-  },
-};
-
-let currentPatientId = 'youssef';
+let currentPatientId = localStorage.getItem('haraka_current_patient_id') || 'demo';
 
 const patientList = document.getElementById('patient-list');
+const patientListLabel = document.getElementById('patient-list-label');
 const liveIndicator = document.getElementById('live-indicator');
 
 const patientNameEl = document.getElementById('patient-name');
@@ -25,6 +11,9 @@ const cardRepsEl = document.getElementById('card-reps');
 const cardLastEl = document.getElementById('card-last');
 
 const sessionBody = document.getElementById('session-body');
+
+const patientCodeInput = document.getElementById('patient-code-input');
+const btnLoadPatient = document.getElementById('btn-load-patient');
 
 const programFields = [
   { name: document.getElementById('ex1-name'), reps: document.getElementById('ex1-reps'), sets: document.getElementById('ex1-sets') },
@@ -105,26 +94,27 @@ function loadSessions(id) {
     `;
     sessionBody.appendChild(tr);
   });
-
-  const meta = patientsMeta[id];
-  if (meta) {
-    patientNameEl.textContent = meta.label;
-    cardSessionsEl.textContent = meta.baseline.sessions;
-    if (arr.length) {
-      const avgQuality = Math.round(
-        arr.reduce((acc, s) => acc + (s.quality || 0), 0) / arr.length
-      );
-      cardQualityEl.textContent = `${avgQuality}%`;
-      cardRepsEl.textContent = String(
-        arr.reduce((acc, s) => acc + (s.reps || 0), 0)
-      );
-      const lastSession = arr[0];
-      cardLastEl.textContent = formatDate(lastSession.timestamp);
-    } else {
-      cardQualityEl.textContent = meta.baseline.quality;
-      cardRepsEl.textContent = meta.baseline.reps;
-      cardLastEl.textContent = meta.baseline.last;
-    }
+  // Stats simples basées sur les données réelles ou vides
+  patientNameEl.textContent = `Patient (code : ${id})`;
+  if (patientListLabel) {
+    patientListLabel.textContent = `Patient (code : ${id})`;
+  }
+  if (arr.length) {
+    const avgQuality = Math.round(
+      arr.reduce((acc, s) => acc + (s.quality || 0), 0) / arr.length
+    );
+    cardQualityEl.textContent = `${avgQuality}%`;
+    cardRepsEl.textContent = String(
+      arr.reduce((acc, s) => acc + (s.reps || 0), 0)
+    );
+    const lastSession = arr[0];
+    cardLastEl.textContent = formatDate(lastSession.timestamp);
+    cardSessionsEl.textContent = `${Math.min(arr.length, 7)}/7`;
+  } else {
+    cardQualityEl.textContent = '—';
+    cardRepsEl.textContent = '0';
+    cardLastEl.textContent = 'Aucune session';
+    cardSessionsEl.textContent = '0/7';
   }
 }
 
@@ -144,15 +134,13 @@ function updateLiveIndicator() {
   }
 }
 
-patientList.addEventListener('click', (e) => {
-  const item = e.target.closest('.patient-item');
-  if (!item) return;
-  const id = item.dataset.id;
-  currentPatientId = id;
-  document.querySelectorAll('.patient-item').forEach((el) => el.classList.remove('active'));
-  item.classList.add('active');
-  loadProgram(id);
-  loadSessions(id);
+btnLoadPatient.addEventListener('click', () => {
+  const code = (patientCodeInput.value || '').trim();
+  if (!code) return;
+  currentPatientId = code;
+  localStorage.setItem('haraka_current_patient_id', currentPatientId);
+  loadProgram(currentPatientId);
+  loadSessions(currentPatientId);
   updateLiveIndicator();
 });
 
@@ -167,6 +155,9 @@ btnSendProgram.addEventListener('click', () => {
 
 setInterval(updateLiveIndicator, 2000);
 
+if (patientCodeInput) {
+  patientCodeInput.value = currentPatientId;
+}
 loadProgram(currentPatientId);
 loadSessions(currentPatientId);
 updateLiveIndicator();
