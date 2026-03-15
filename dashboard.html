@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0" />
+    <title>HARAKA · Tableau kiné</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="dashboard-shell">
+      <aside class="sidebar glass">
+        <div>
+          <div class="sidebar-logo">HARAKA</div>
+          <div class="sidebar-sub">حركة</div>
+        </div>
+        <div class="patient-list" id="patient-list">
+          <div class="patient-item active" data-id="youssef">
+            <strong>Youssef M.</strong>
+            <div class="patient-meta">Genou post‑op — Semaine 2</div>
+            <div class="patient-compliance">73% de complétion</div>
+          </div>
+          <div class="patient-item" data-id="fatima">
+            <strong>Fatima A.</strong>
+            <div class="patient-meta">Épaule — Semaine 1</div>
+            <div class="patient-compliance">45% de complétion</div>
+          </div>
+          <div class="patient-item" data-id="omar">
+            <strong>Omar K.</strong>
+            <div class="patient-meta">Dos — Semaine 3</div>
+            <div class="patient-compliance">91% de complétion</div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main-panel glass">
+        <div class="main-header-row">
+          <div>
+            <div class="section-title">Patient</div>
+            <h1 class="main-title" id="patient-name">Youssef M. — Genou post‑op</h1>
+          </div>
+          <div id="live-indicator" class="live-badge off">
+            <span class="live-dot"></span>
+            <span>EN DIRECT</span>
+          </div>
+        </div>
+
+        <!-- Stats cartes -->
+        <section class="stats-grid">
+          <div class="card">
+            <div class="card-label">Sessions cette semaine</div>
+            <div class="card-value" id="card-sessions">4/5</div>
+          </div>
+          <div class="card">
+            <div class="card-label">Qualité du mouvement</div>
+            <div class="card-value" id="card-quality">81%</div>
+          </div>
+          <div class="card">
+            <div class="card-label">Reps complétées</div>
+            <div class="card-value" id="card-reps">127</div>
+          </div>
+          <div class="card">
+            <div class="card-label">Dernière session</div>
+            <div class="card-value" id="card-last">Hier 18:32</div>
+          </div>
+        </section>
+
+        <!-- Prescription -->
+        <section class="section">
+          <div class="section-title">Programme de la semaine</div>
+          <div class="prescription-row">
+            <select class="select-sm" id="ex1-name">
+              <option value="knee_raise">Montée de genou</option>
+              <option value="arm_raise">Élévation du bras</option>
+              <option value="squat">Squat partiel</option>
+            </select>
+            <input type="number" class="input" id="ex1-reps" min="1" value="15" />
+            <input type="number" class="input" id="ex1-sets" min="1" value="3" />
+          </div>
+          <div class="prescription-row">
+            <select class="select-sm" id="ex2-name">
+              <option value="knee_raise">Montée de genou</option>
+              <option value="arm_raise">Élévation du bras</option>
+              <option value="squat">Squat partiel</option>
+            </select>
+            <input type="number" class="input" id="ex2-reps" min="1" value="12" />
+            <input type="number" class="input" id="ex2-sets" min="1" value="2" />
+          </div>
+          <div class="prescription-row">
+            <select class="select-sm" id="ex3-name">
+              <option value="knee_raise">Montée de genou</option>
+              <option value="arm_raise">Élévation du bras</option>
+              <option value="squat">Squat partiel</option>
+            </select>
+            <input type="number" class="input" id="ex3-reps" min="1" value="10" />
+            <input type="number" class="input" id="ex3-sets" min="1" value="2" />
+          </div>
+          <div class="section-footer">
+            <button class="btn-primary" id="btn-send-program">Envoyer au patient →</button>
+            <div class="toast" id="program-toast" style="opacity: 0;">Programme envoyé !</div>
+          </div>
+        </section>
+
+        <!-- Historique des sessions -->
+        <section class="section">
+          <div class="section-title">Dernières sessions</div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Exercice</th>
+                <th>Reps</th>
+                <th>Score</th>
+                <th>Qualité</th>
+                <th>Durée</th>
+              </tr>
+            </thead>
+            <tbody id="session-body">
+              <!-- rempli dynamiquement -->
+            </tbody>
+          </table>
+        </section>
+      </main>
+    </div>
+
+    <script src="dashboard.js"></script>
+  </body>
+</html>
+

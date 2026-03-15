@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0" />
+    <title>HARAKA · Jeu de rééducation</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+  </head>
+  <body>
+    <div class="app-shell glass">
+      <!-- Écran 1 : Accueil -->
+      <section class="screen screen-welcome active" id="screen-welcome">
+        <div class="screen-welcome-inner">
+          <div class="welcome-orbit">
+            <div class="welcome-pulse"></div>
+            <div class="welcome-arc"></div>
+            <div class="welcome-node knee"></div>
+            <div class="welcome-node shoulder"></div>
+            <div class="welcome-node hip"></div>
+          </div>
+          <div class="logo-main">HARAKA</div>
+          <div class="logo-sub-ar">حركة</div>
+          <p class="tagline">« La rééducation devient un jeu »</p>
+          <div style="margin-top: 26px; display: flex; flex-direction: column; gap: 14px; align-items: center;">
+            <button class="btn-primary" id="btn-start">COMMENCER</button>
+            <div class="chip">
+              <span class="chip-dot"></span>
+              <span>Game4Health · iSMAGi · Rabat 2026</span>
+            </div>
+          </div>
+          <p class="small-print">Caméra démarrée uniquement après votre clic · Fonctionne hors‑ligne</p>
+        </div>
+      </section>
+
+      <!-- Écran 2 : Jeu -->
+      <section class="screen screen-game" id="screen-game">
+        <div class="game-layout">
+          <!-- Canvas de jeu -->
+          <div class="game-canvas-shell" id="game-shell">
+            <div class="hud-top">
+              <div class="hud-pill">
+                <div class="hud-label">Reps</div>
+                <div class="hud-value"><span id="reps-done">0</span> / <span id="reps-target">15</span></div>
+              </div>
+              <div class="hud-pill">
+                <div class="hud-label">Score</div>
+                <div class="hud-value" id="score-value">0</div>
+              </div>
+              <div class="hud-pill">
+                <div class="hud-label">Combo</div>
+                <div class="hud-value" id="combo-value">x0</div>
+              </div>
+            </div>
+            <canvas id="gameCanvas" width="700" height="400"></canvas>
+            <div class="game-overlay-flash" id="good-flash"></div>
+            <div class="game-overlay-shake" id="shake-layer"></div>
+            <div class="combo-banner" id="combo-banner">x3 COMBO!</div>
+            <div class="demo-badge" id="demo-badge" style="display: none;">
+              <span class="demo-dot"></span>
+              DEMO
+            </div>
+          </div>
+
+          <!-- Colonne caméra + stats -->
+          <aside class="game-sidebar glass">
+            <div class="camera-shell">
+              <video id="video" playsinline></video>
+              <div class="camera-label">Caméra patient</div>
+            </div>
+
+            <div class="stat-stack">
+              <div>
+                <div class="stat-label">Exercice actuel</div>
+                <div class="stat-value" id="exercise-name-fr">Montée de genou</div>
+                <div class="stat-value" id="exercise-name-ar" style="font-family: 'Noto Naskh Arabic', serif; direction: rtl; font-size: 13px; color: var(--teal);">رفع الركبة</div>
+              </div>
+
+              <div>
+                <div class="stat-label">Angle articulaire</div>
+                <div class="angle-pill" id="angle-pill">
+                  <span class="angle-dot" id="angle-dot" style="background: var(--coral);"></span>
+                  <span>Angle: <span id="angle-value">0</span>°</span>
+                </div>
+              </div>
+
+              <div>
+                <div class="stat-label">Feedback</div>
+                <div class="feedback-text" id="feedback-text">Prépare‑toi…</div>
+              </div>
+
+              <div>
+                <div class="stat-row">
+                  <span class="stat-label">Santé</span>
+                  <span class="stat-value" id="health-label">100</span>
+                </div>
+                <div class="bar-shell">
+                  <div class="bar-fill" id="health-bar" style="width: 100%;"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="stat-row">
+                  <span class="stat-label">Respiration</span>
+                  <span class="stat-value" id="breath-label">Calme</span>
+                </div>
+                <div class="bar-shell">
+                  <div class="bar-fill breath" id="breath-bar" style="width: 30%;"></div>
+                </div>
+              </div>
+
+              <div class="controls-row">
+                <select class="select" id="exercise-select">
+                  <option value="knee_raise">Montée de genou · رفع الركبة</option>
+                  <option value="arm_raise">Élévation du bras · رفع الذراع</option>
+                  <option value="squat">Squat partiel · انحناء جزئي</option>
+                </select>
+                <input type="number" class="select" id="reps-input" min="5" max="60" step="1" value="15" style="max-width: 90px;" />
+                <button class="btn-ghost" id="btn-demo">
+                  MODE DEMO
+                </button>
+              </div>
+
+              <div class="stat-row" style="margin-top: 4px;">
+                <span class="stat-label">Temps réel</span>
+                <span class="stat-value" id="status-label">Pose en cours…</span>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- Écran 3 : Session terminée -->
+      <section class="screen screen-complete" id="screen-complete">
+        <div class="flash-complete" id="complete-flash"></div>
+        <h2 class="session-title">SESSION COMPLÈTE ! 🏆</h2>
+        <div class="session-stats">
+          <div class="session-card">
+            <div class="session-label">Reps effectuées</div>
+            <div class="session-value" id="stat-reps">0</div>
+          </div>
+          <div class="session-card">
+            <div class="session-label">Score total</div>
+            <div class="session-value" id="stat-score">0</div>
+          </div>
+          <div class="session-card">
+            <div class="session-label">Qualité</div>
+            <div class="session-value" id="stat-quality">0%</div>
+          </div>
+          <div class="session-card">
+            <div class="session-label">Combo max</div>
+            <div class="session-value" id="stat-combo">x0</div>
+          </div>
+        </div>
+        <p class="session-note">
+          Les résultats sont enregistrés pour votre kinésithérapeute dans HARAKA Dashboard.
+        </p>
+        <div style="margin-top: 18px;">
+          <button class="btn-primary" id="btn-replay">REJOUER</button>
+        </div>
+      </section>
+    </div>
+
+    <script src="game.js"></script>
+  </body>
+</html>
+
