@@ -315,6 +315,50 @@ a {
     0 20px 40px rgba(0, 0, 0, 0.95);
 }
 
+.status-badge {
+  position: absolute;
+  right: 16px;
+  bottom: 14px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--muted);
+  border: 1px solid rgba(203, 216, 222, 0.9);
+}
+
+.status-badge.live {
+  color: var(--green);
+  border-color: rgba(47, 156, 122, 0.7);
+}
+
+.status-badge.demo {
+  color: var(--muted);
+}
+
+.debug-angle {
+  position: absolute;
+  left: 16px;
+  bottom: 12px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.debug-angle-value {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.debug-angle-range {
+  opacity: 0.8;
+}
+
 .game-canvas-shell::before {
   content: '';
   position: absolute;

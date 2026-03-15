@@ -43,11 +43,31 @@
         </div>
       </section>
 
+      <!-- Écran 1bis : Préparation -->
+      <section class="screen screen-prepare" id="screen-prepare">
+        <div class="screen-welcome-inner">
+          <div class="logo-main" style="font-size: 26px; letter-spacing: 0.18em;">PRÉPARATION</div>
+          <p class="tagline" style="margin-top: 10px;">Avant de commencer la séance</p>
+          <div style="margin-top: 20px; text-align: left; font-size: 14px; line-height: 1.6;">
+            <ol style="padding-left: 20px; margin: 0; color: var(--muted);">
+              <li>Placez‑vous à environ 2&nbsp;m de votre téléphone.</li>
+              <li>Assurez‑vous que la zone à rééduquer est bien visible dans la caméra.</li>
+              <li>Quand le jeu démarre, levez le genou 3 fois pour tester.</li>
+            </ol>
+          </div>
+          <div style="margin-top: 22px; display: flex; flex-direction: column; gap: 10px; align-items: center;">
+            <button class="btn-primary" id="btn-prepare-go">Je suis prêt · Lancer la séance</button>
+            <div class="small-print" style="margin-top: 0;">Prototype de recherche · Données fictives</div>
+          </div>
+        </div>
+      </section>
+
       <!-- Écran 2 : Jeu -->
       <section class="screen screen-game" id="screen-game">
         <div class="game-layout">
           <!-- Canvas de jeu -->
           <div class="game-canvas-shell" id="game-shell">
+            <div class="status-badge" id="tracking-badge">Suivi : INIT</div>
             <div class="hud-top">
               <div class="hud-pill">
                 <div class="hud-label">Reps</div>
@@ -69,6 +89,10 @@
             <div class="demo-badge" id="demo-badge" style="display: none;">
               <span class="demo-dot"></span>
               DEMO
+            </div>
+            <div class="debug-angle" id="debug-angle" style="display: none;">
+              <div class="debug-angle-value" id="debug-angle-value">0°</div>
+              <div class="debug-angle-range" id="debug-angle-range">Cible: 0–0°</div>
             </div>
           </div>
 
@@ -160,6 +184,14 @@
           <div class="session-card">
             <div class="session-label">Combo max</div>
             <div class="session-value" id="stat-combo">x0</div>
+          </div>
+          <div class="session-card">
+            <div class="session-label">Amplitude moyenne</div>
+            <div class="session-value" id="stat-angle">0°</div>
+          </div>
+          <div class="session-card">
+            <div class="session-label">Temps sous tension</div>
+            <div class="session-value" id="stat-tension">0 s</div>
           </div>
         </div>
         <p class="session-note">

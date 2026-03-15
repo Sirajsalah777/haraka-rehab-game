@@ -15,6 +15,11 @@ const sessionBody = document.getElementById('session-body');
 const patientCodeInput = document.getElementById('patient-code-input');
 const btnLoadPatient = document.getElementById('btn-load-patient');
 
+const summarySessionsEl = document.getElementById('summary-sessions');
+const summaryQualityEl = document.getElementById('summary-quality');
+const summaryRepsEl = document.getElementById('summary-reps');
+const summaryAngleEl = document.getElementById('summary-angle');
+
 const programFields = [
   { name: document.getElementById('ex1-name'), reps: document.getElementById('ex1-reps'), sets: document.getElementById('ex1-sets') },
   { name: document.getElementById('ex2-name'), reps: document.getElementById('ex2-reps'), sets: document.getElementById('ex2-sets') },
@@ -90,6 +95,7 @@ function loadSessions(id) {
       <td>${s.reps}</td>
       <td>${s.score}</td>
       <td>${s.quality}%</td>
+      <td>${s.mean_angle || 0}°</td>
       <td>${Math.round(s.duration_seconds / 60)} min</td>
     `;
     sessionBody.appendChild(tr);
@@ -100,21 +106,36 @@ function loadSessions(id) {
     patientListLabel.textContent = `Patient (code : ${id})`;
   }
   if (arr.length) {
+    const now = Date.now();
+    const weekMs = 7 * 24 * 60 * 60 * 1000;
+    const weekSessions = arr.filter((s) => now - s.timestamp < weekMs);
     const avgQuality = Math.round(
       arr.reduce((acc, s) => acc + (s.quality || 0), 0) / arr.length
     );
+    const totalReps = arr.reduce((acc, s) => acc + (s.reps || 0), 0);
+    const avgAngle =
+      arr.reduce((acc, s) => acc + (s.mean_angle || 0), 0) /
+      arr.length;
     cardQualityEl.textContent = `${avgQuality}%`;
-    cardRepsEl.textContent = String(
-      arr.reduce((acc, s) => acc + (s.reps || 0), 0)
-    );
+    cardRepsEl.textContent = String(totalReps);
     const lastSession = arr[0];
     cardLastEl.textContent = formatDate(lastSession.timestamp);
-    cardSessionsEl.textContent = `${Math.min(arr.length, 7)}/7`;
+    cardSessionsEl.textContent = `${Math.min(weekSessions.length, 7)}/7`;
+
+    if (summarySessionsEl) summarySessionsEl.textContent = `${weekSessions.length}/7`;
+    if (summaryQualityEl) summaryQualityEl.textContent = `${avgQuality}%`;
+    if (summaryRepsEl) summaryRepsEl.textContent = String(totalReps);
+    if (summaryAngleEl) summaryAngleEl.textContent = `${Math.round(avgAngle || 0)}°`;
   } else {
     cardQualityEl.textContent = '—';
     cardRepsEl.textContent = '0';
     cardLastEl.textContent = 'Aucune session';
     cardSessionsEl.textContent = '0/7';
+
+    if (summarySessionsEl) summarySessionsEl.textContent = '0/7';
+    if (summaryQualityEl) summaryQualityEl.textContent = '—';
+    if (summaryRepsEl) summaryRepsEl.textContent = '0';
+    if (summaryAngleEl) summaryAngleEl.textContent = '0°';
   }
 }
 

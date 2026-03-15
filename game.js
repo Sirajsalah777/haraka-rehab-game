@@ -118,10 +118,12 @@ function playVictoryFanfare() {
 // DOM
 const screens = {
   welcome: document.getElementById('screen-welcome'),
+  prepare: document.getElementById('screen-prepare'),
   game: document.getElementById('screen-game'),
   complete: document.getElementById('screen-complete'),
 };
 const btnStart = document.getElementById('btn-start');
+const btnPrepareGo = document.getElementById('btn-prepare-go');
 const btnDemo = document.getElementById('btn-demo');
 const btnReplay = document.getElementById('btn-replay');
 const gameCanvas = document.getElementById('gameCanvas');
@@ -132,6 +134,10 @@ const goodFlash = document.getElementById('good-flash');
 const shakeLayer = document.getElementById('shake-layer');
 const comboBanner = document.getElementById('combo-banner');
 const demoBadge = document.getElementById('demo-badge');
+const trackingBadge = document.getElementById('tracking-badge');
+const debugAngleBox = document.getElementById('debug-angle');
+const debugAngleValueEl = document.getElementById('debug-angle-value');
+const debugAngleRangeEl = document.getElementById('debug-angle-range');
 
 const repsDoneEl = document.getElementById('reps-done');
 const repsTargetEl = document.getElementById('reps-target');
@@ -156,6 +162,8 @@ const statScoreEl = document.getElementById('stat-score');
 const statQualityEl = document.getElementById('stat-quality');
 const statComboEl = document.getElementById('stat-combo');
 const completeFlash = document.getElementById('complete-flash');
+const statAngleEl = document.getElementById('stat-angle');
+const statTensionEl = document.getElementById('stat-tension');
 
 // État jeu
 const GAME_WIDTH = 700;
@@ -183,9 +191,15 @@ let maxCombo = 0;
 let lastRepTime = 0;
 let health = 100;
 let qualitySamples = [];
+let angleSum = 0;
+let angleCount = 0;
+let tensionFrames = 0;
 let gameRunning = false;
 let demoMode = false;
 let activeExerciseKey = 'knee_raise';
+let kneeCalibrated = false;
+let kneeCalibMax = 0;
+let debugMode = false;
 
 // Rep detection
 let repState = {
@@ -222,6 +236,14 @@ function resetGameState() {
   maxCombo = 0;
   health = 100;
   qualitySamples = [];
+  angleSum = 0;
+  angleCount = 0;
+  tensionFrames = 0;
+  if (activeExerciseKey === 'knee_raise') {
+    kneeCalibrated = false;
+    kneeCalibMax = 0;
+    feedbackTextEl.textContent = 'Lève le genou une fois au maximum pour calibrer.';
+  }
   repState = { phase: 'down', holdFrames: 0, lastAngle: 0 };
   repsTarget = parseInt(repsInput.value, 10) || 15;
   if (repsTarget < 1) repsTarget = 1;
@@ -339,10 +361,14 @@ function endSession() {
   const total = Math.max(1, qualitySamples.length);
   const sum = qualitySamples.reduce((a, b) => a + b, 0);
   const quality = Math.round((sum / total) * 100);
+  const meanAngle = angleCount > 0 ? Math.round(angleSum / angleCount) : 0;
+  const tensionSeconds = Math.round(tensionFrames * 0.1); // approx 10 FPS
   statRepsEl.textContent = repsDone;
   statScoreEl.textContent = score;
   statQualityEl.textContent = quality + '%';
   statComboEl.textContent = 'x' + maxCombo;
+  statAngleEl.textContent = (meanAngle || 0) + '°';
+  statTensionEl.textContent = (tensionSeconds || 0) + ' s';
 
   completeFlash.style.transition = 'none';
   completeFlash.style.opacity = '1';
@@ -351,7 +377,7 @@ function endSession() {
     completeFlash.style.opacity = '0';
   });
   playVictoryFanfare();
-  saveSession(quality);
+  saveSession(quality, meanAngle, tensionSeconds);
   switchScreen('complete');
 }
 
@@ -592,6 +618,40 @@ function handlePoseAngle(angle) {
   const cfg = EXERCISES[activeExerciseKey];
   if (!cfg || !gameRunning) return;
   angleValueEl.textContent = angle;
+
+  // Calibration spécifique pour la montée de genou
+  if (activeExerciseKey === 'knee_raise' && !demoMode) {
+    if (!kneeCalibrated) {
+      if (angle > kneeCalibMax) {
+        kneeCalibMax = angle;
+      }
+      // Quand le patient redescend après avoir bien levé
+      if (kneeCalibMax >= 80 && angle < kneeCalibMax * 0.7) {
+        // On adapte dynamiquement l'angle_min pour cette séance
+        const dynMin = Math.max(50, Math.round(kneeCalibMax * 0.65));
+        const dynMax = Math.min(160, Math.round(kneeCalibMax + 20));
+        cfg.angle_min = dynMin;
+        cfg.angle_max = dynMax;
+        kneeCalibrated = true;
+        feedbackTextEl.textContent = `Calibré : vise ~${dynMin}–${dynMax}°`;
+      } else {
+        feedbackTextEl.textContent = 'Monte une fois ton genou au maximum…';
+      }
+    }
+  }
+
+  // Debug kiné : affichage clair de l’angle et de la zone cible
+  if (debugMode && debugAngleBox && debugAngleValueEl && debugAngleRangeEl) {
+    debugAngleBox.style.display = 'block';
+    debugAngleValueEl.textContent = `${angle}°`;
+    debugAngleRangeEl.textContent = `Cible: ${cfg.angle_min}–${cfg.angle_max}°`;
+    // Couleur : rouge / orange / vert
+    let color = '#f06a5c';
+    if (angle >= cfg.angle_min && angle <= cfg.angle_max) color = '#2f9c7a';
+    else if (angle >= cfg.angle_min * 0.7) color = '#f3b35b';
+    debugAngleValueEl.style.color = color;
+  }
+
   let quality = 0;
   if (angle >= cfg.angle_min && angle <= cfg.angle_max) {
     angleDot.style.background = 'var(--green)';
@@ -602,6 +662,11 @@ function handlePoseAngle(angle) {
     if (angle < cfg.angle_min) feedbackTextEl.textContent = cfg.feedback_low;
   }
   qualitySamples.push(quality);
+  if (quality === 1) {
+    angleSum += angle;
+    angleCount += 1;
+    tensionFrames += 1;
+  }
 
   const fast = Math.abs(angle - repState.lastAngle) > 20 && repState.holdFrames === 0;
   if (fast && angle > cfg.angle_max) {
@@ -679,6 +744,11 @@ function startCamera() {
     .then(() => {
       deactivateDemoMode();
       statusLabelEl.textContent = 'Caméra active · Pose en temps réel';
+      if (trackingBadge) {
+        trackingBadge.textContent = 'Suivi : CAMÉRA';
+        trackingBadge.classList.add('live');
+        trackingBadge.classList.remove('demo');
+      }
     })
     .catch((e) => {
       console.error(e);
@@ -711,6 +781,11 @@ function activateDemoMode(reason) {
   demoMode = true;
   demoBadge.style.display = 'inline-flex';
   statusLabelEl.textContent = reason || 'Mode démo actif';
+   if (trackingBadge) {
+    trackingBadge.textContent = 'Suivi : DÉMO';
+    trackingBadge.classList.add('demo');
+    trackingBadge.classList.remove('live');
+  }
   if (camera) {
     try {
       camera.stop();
@@ -731,7 +806,7 @@ function deactivateDemoMode() {
 // LocalStorage
 let PATIENT_ID = 'demo';
 
-function saveSession(quality) {
+function saveSession(quality, meanAngle, tensionSeconds) {
   if (!PATIENT_ID) PATIENT_ID = 'demo';
   const data = {
     timestamp: Date.now(),
@@ -740,6 +815,8 @@ function saveSession(quality) {
     score,
     quality,
     combo_max: maxCombo,
+    mean_angle: meanAngle,
+    tension_seconds: tensionSeconds,
     duration_seconds: Math.round((Date.now() - sessionStartTime) / 1000),
   };
   const key = `haraka_sessions_${PATIENT_ID}`;
@@ -775,20 +852,40 @@ btnStart.addEventListener('click', async () => {
   const typedId = patientIdInput ? patientIdInput.value.trim() : '';
   PATIENT_ID = typedId || 'demo';
   localStorage.setItem('haraka_current_patient_id', PATIENT_ID);
-  switchScreen('game');
-  resetGameState();
-  statusLabelEl.textContent = 'Démarrage…';
-  if (!pose) initPose();
+  // Pré-remplissage depuis le programme kiné
   try {
-    await startCamera();
-  } catch (_) {
-    // startCamera gère déjà l’erreur vers demo
-  }
-  gameRunning = true;
-  sessionStartTime = Date.now();
-  startActivePing();
-  if (demoMode) runDemoSequence();
+    const progRaw = localStorage.getItem(`haraka_program_${PATIENT_ID}`);
+    if (progRaw) {
+      const prog = JSON.parse(progRaw);
+      if (Array.isArray(prog) && prog[0]) {
+        if (exerciseSelect) exerciseSelect.value = prog[0].exercise || 'knee_raise';
+        if (repsInput) repsInput.value = prog[0].reps || repsInput.value;
+        activeExerciseKey = exerciseSelect.value;
+        updateExerciseUI();
+      }
+    }
+  } catch (_) {}
+  switchScreen('prepare');
 });
+
+if (btnPrepareGo) {
+  btnPrepareGo.addEventListener('click', async () => {
+    ensureAudio();
+    switchScreen('game');
+    resetGameState();
+    statusLabelEl.textContent = 'Démarrage…';
+    if (!pose) initPose();
+    try {
+      await startCamera();
+    } catch (_) {
+      // startCamera gère déjà l’erreur vers demo
+    }
+    gameRunning = true;
+    sessionStartTime = Date.now();
+    startActivePing();
+    if (demoMode) runDemoSequence();
+  });
+}
 
 btnReplay.addEventListener('click', () => {
   switchScreen('game');
@@ -804,10 +901,14 @@ btnDemo.addEventListener('click', () => {
     activateDemoMode('Mode démo manuel');
     if (gameRunning) runDemoSequence();
   } else {
-    deactivateDemoMode();
-    statusLabelEl.textContent = 'Pose en cours…';
-    if (!pose) initPose();
-    startCamera();
+    // Si on est déjà en mode démo, on utilise un appui long (maintien 1,5s) pour activer le mode debug kiné
+    // et un simple clic pour revenir à la caméra si disponible.
+    if (!debugMode) {
+      deactivateDemoMode();
+      statusLabelEl.textContent = 'Pose en cours…';
+      if (!pose) initPose();
+      startCamera();
+    }
   }
 });
 
@@ -820,6 +921,16 @@ repsInput.addEventListener('change', () => {
   repsTarget = parseInt(repsInput.value, 10) || 15;
   repsTargetEl.textContent = repsTarget;
 });
+
+// Mode debug kiné : double-clic sur la zone angle pour l’activer/désactiver
+if (angleValueEl) {
+  angleValueEl.parentElement.addEventListener('dblclick', () => {
+    debugMode = !debugMode;
+    if (debugAngleBox) {
+      debugAngleBox.style.display = debugMode ? 'block' : 'none';
+    }
+  });
+}
 
 // Simule une respiration via Web Audio input simplifié
 setInterval(() => {
